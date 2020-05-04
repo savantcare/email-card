@@ -23,30 +23,12 @@
         </b-row>
       </template>
       <b-card-text>
-        <b-table
-          ref="selectableTable"
-          selectable
-          bordered
-          select-mode="multi"
-          :items="items"
-          @row-selected="onRowSelected"
-          responsive="sm"
-          :fields="fields"
-          :small="style == 2"
-        >
+        <b-table ref="selectableTable" selectable bordered select-mode="multi" :items="items"
+          @row-selected="onRowSelected" responsive="sm" :fields="fields" :small="style == 2" >
           <!-- Example scoped slot for select state illustrative purposes -->
           <template v-slot:cell(action)="item">
-            <b-button
-              :size="style == 1 ? '' :'sm'"
-              variant="outline-primary"
-              @click="openEditModal(item)"
-            >Edit</b-button>
-            <b-button
-              variant="outline-danger"
-              @click="deleteemail(item)"
-              class="ml-2"
-              :size="style == 1 ? '' : 'sm'"
-            >Delete</b-button>
+            <b-button :size="style == 1 ? '' :'sm'" variant="outline-primary" @click="openEditModal(item)" >Edit</b-button>
+            <b-button variant="outline-danger" @click="deleteemail(item)" class="ml-2" :size="style == 1 ? '' : 'sm'" >Delete</b-button>
           </template>
         </b-table>
       </b-card-text>
@@ -55,27 +37,18 @@
     <b-modal v-model="modalShow" id="modal-center" centered :title="modalTitle">
       <b-form @submit.stop.prevent>
         <label>Email  Id:</label>
+        <b-form-input id="input-state" v-model="data.description" :state="validationEmail" type="email" placeholder="Enter email id" ></b-form-input>
 
-        <b-form-input
-          id="input-state"
-          v-model="data.description"
-          :state="validation"
-          type="email"
-          placeholder="Enter email id"
-        ></b-form-input>
-        <b-form-invalid-feedback :state="validation">{{data.errorMessage}}</b-form-invalid-feedback>
+        <label>Email  type:</label>
+        <b-form-input id="input-type" v-model="data.type" :state="validationType" placeholder="Enter email type" ></b-form-input>
+
+        <b-form-invalid-feedback :state="validatateForm">{{data.errorMessage}}</b-form-invalid-feedback>
       </b-form>
 
       <template v-slot:modal-footer>
         <div class="float-right">
           <b-button size="sm" @click="modalShow=false">Close</b-button>
-          <b-button
-            class="ml-2"
-            variant="primary"
-            size="sm"
-            @click="save"
-            :disabled="!validation"
-          >{{modalType == 1 ? "Save" : "Update"}}</b-button>
+          <b-button class="ml-2" variant="primary" size="sm" @click="save" :disabled="!validatateForm" >{{modalType == 1 ? "Save" : "Update"}}</b-button>
         </div>
       </template>
     </b-modal>
@@ -91,10 +64,11 @@ export default {
   name: "emailCard",
   data() {
     return {
-      fields: ["description", "createdAt", "action"],
+      fields: ["description", "type", "createdAt", "action"],
       modalShow: false,
       data: {
         description: "",
+        type: "",
         errorMessage: '',
       },
       selected: [],
@@ -103,8 +77,15 @@ export default {
     };
   },
   computed: {
-    validation() {
-      return (this.validEmail(this.data.description))  ? true : false;
+
+    validatateForm() {
+      return (this.validEmail(this.data) && this.validEmailType(this.data) )  ? true : false;
+    },
+    validationEmail() {
+      return this.validEmail(this.data);
+    },
+    validationType() {
+      return this.validEmailType(this.data);
     },
     modalTitle() {
       return this.modalType == 1 ? "Add email" : "Edit email";
@@ -124,10 +105,11 @@ export default {
     showAddModal() {
       this.modalShow = true;
       this.modalType = 1;
-      this.data = { description: "" };
+      this.data = { description: "", type: "", };
     },
-    validEmail: function (email) {
+    validEmail: function (data) {
       var re = /^(([^<>()[\]\\.,;:\s@"]+(\.[^<>()[\]\\.,;:\s@"]+)*)|(".+"))@((\[[0-9]{1,3}\.[0-9]{1,3}\.[0-9]{1,3}\.[0-9]{1,3}\])|(([a-zA-Z\-0-9]+\.)+[a-zA-Z]{2,}))$/;
+      var email = data.description;
       if(email.length === 0) {
         this.data.errorMessage = "emailid is required";
         return false;
@@ -136,9 +118,22 @@ export default {
           this.data.errorMessage = "invalid email";
           return false;
       }
-      else return true;
+      else {
+        this.data.errorMessage = "";
+        return true;
+      }
+    },
 
-      //return re.test(email);
+    validEmailType: function (data) {
+      var emailType = data.type; 
+      if(emailType.length === 0) {
+        this.data.errorMessage = "email type is required";
+        return false;
+      }
+      else {
+        this.data.errorMessage = "";
+        return true;
+      }
     },
     async save() {
       if (this.modalType == 1) {
@@ -156,6 +151,7 @@ export default {
             newList.push({
               id: this.data.id,
               description: this.data.description,
+              type: this.data.type,
               createdAt: this.data.createdAt
             });
           } else {
@@ -172,6 +168,7 @@ export default {
       this.data = {
         id: this.items[item.index]["id"],
         description: this.items[item.index]["description"],
+        type: this.items[item.index]["type"],
         createdAt: this.items[item.index]["createdAt"]
       };
       this.modalShow = true;
