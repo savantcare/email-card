@@ -40,7 +40,7 @@
         <b-form-input id="input-state" v-model="data.description" :state="validationEmail" type="email" placeholder="Enter email id" ></b-form-input>
 
         <label>Email  type:</label>
-        <b-form-input id="input-type" v-model="data.type" :state="validationType" placeholder="Enter email type" ></b-form-input>
+        <b-form-select id="input-type" v-model="data.type" :state="validationType"  :options="options" placeholder="Enter email type" ></b-form-select>
 
         <b-form-invalid-feedback :state="validatateForm">{{data.errorMessage}}</b-form-invalid-feedback>
       </b-form>
@@ -66,6 +66,12 @@ export default {
     return {
       fields: ["description", "type", "createdAt", "action"],
       modalShow: false,
+      select: null,
+        options: [
+          { value: null, text: 'Please select an option' },
+          { value: 'personal', text: 'Personal' },
+          { value: 'work', text: 'Work' }
+        ],
       data: {
         description: "",
         type: "",
